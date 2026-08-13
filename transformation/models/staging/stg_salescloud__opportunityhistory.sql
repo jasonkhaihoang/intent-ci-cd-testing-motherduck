@@ -6,21 +6,21 @@
 
 WITH source AS (
 
-  SELECT * FROM {{ source('salescloud', 'opportunityhistory') }}
+    SELECT * FROM {{ source('salescloud', 'opportunityhistory') }}
 
 ),
 
 renamed AS (
 
-  SELECT
-    "Id" AS opportunity_history_id,
-    "OpportunityId" AS opportunity_id,
-    "StageName" AS stage_name,
-    "Amount" AS amount,
-    "Probability" AS probability,
-    CAST("CloseDate" AS DATE) AS close_date,
-    CAST("CreatedDate" AS TIMESTAMP) AS created_date
-  FROM source
+    SELECT
+        id AS opportunity_history_id,
+        opportunityid AS opportunity_id,
+        stagename AS stage_name,
+        amount,
+        probability,
+        CAST(closedate AS DATE) AS close_date,
+        CAST(createddate AS TIMESTAMP) AS created_date
+    FROM source
 
 )
 
