@@ -122,6 +122,12 @@ def fetch_artifact_mode(cfg: dict) -> ArtifactResult:
     )
     if result.returncode != 0:
         reason = f"gh run list failed: {result.stderr.strip() or 'exit ' + str(result.returncode)}"
+        if "not found on the default branch" in (result.stderr or ""):
+            runner_io.notice(
+                "CD-publish workflow not found on the default branch — true "
+                "greenfield (full build)."
+            )
+            return ArtifactResult("greenfield")
         runner_io.warning(reason)
         return ArtifactResult("error", "transient", reason)
 
