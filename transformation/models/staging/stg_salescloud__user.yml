@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: stg_salescloud__user
+    description: >
+      One row per user_id. Staging model over the raw User bronze table:
+      renames columns to snake_case and casts types.
+    columns:
+      - name: user_id
+        description: Salesforce User ID.
+        tests:
+          - not_null
+          - unique
+      - name: user_name
+        description: Full name of the user.
+      - name: email
+        description: User's email address.
+      - name: username
+        description: User's login username.
+      - name: user_role_id
+        description: FK to the source user role.
+      - name: profile_id
+        description: FK to the source user profile.
+      - name: job_title
+        description: User's job title.
+      - name: is_active
+        description: Whether the user is currently active.
+      - name: created_date
+        description: Timestamp the user was created in the source system.
+      - name: last_modified_date
+        description: Timestamp the user was last modified in the source system.

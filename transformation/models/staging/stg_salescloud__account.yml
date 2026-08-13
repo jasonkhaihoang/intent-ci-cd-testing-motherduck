@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: stg_salescloud__account
+    description: >
+      One row per account_id. Staging model over the raw Account bronze
+      table: renames columns to snake_case, casts types, and filters
+      soft-deleted rows.
+    columns:
+      - name: account_id
+        description: Salesforce Account ID.
+        tests:
+          - not_null
+          - unique
+      - name: account_name
+        description: Account name.
+      - name: account_type
+        description: Account type (e.g. Customer, Prospect).
+      - name: industry
+        description: Industry classification of the account.
+      - name: billing_city
+        description: Billing address city.
+      - name: billing_state
+        description: Billing address state.
+      - name: billing_country
+        description: Billing address country.
+      - name: owner_id
+        description: FK to stg_salescloud__user.user_id, the account owner.
+      - name: is_deleted
+        description: Soft-delete flag from the source system.
+      - name: created_date
+        description: Timestamp the account was created in the source system.
+      - name: last_modified_date
+        description: Timestamp the account was last modified in the source system.

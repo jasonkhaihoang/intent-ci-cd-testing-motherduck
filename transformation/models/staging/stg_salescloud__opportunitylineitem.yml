@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_salescloud__opportunitylineitem
+    description: >
+      One row per line_item_id. Staging model over the raw
+      OpportunityLineItem bronze table: renames columns to snake_case
+      and casts types.
+    columns:
+      - name: line_item_id
+        description: Salesforce OpportunityLineItem ID.
+        tests:
+          - not_null
+          - unique
+      - name: opportunity_id
+        description: FK to stg_salescloud__opportunity.opportunity_id.
+        tests:
+          - not_null
+      - name: pricebook_entry_id
+        description: FK to the source pricebook entry.
+      - name: product_id
+        description: FK to the source product (Product2).
+      - name: product_name
+        description: Product name at the time of the line item.
+      - name: product_code
+        description: Product code at the time of the line item.
+      - name: quantity
+        description: Quantity of the product sold.
+      - name: unit_price
+        description: Unit price of the product.
+      - name: total_price
+        description: Total price for this line item (quantity x unit price).
+      - name: discount
+        description: Discount applied to this line item, if any.
+      - name: description
+        description: Free-text description of the line item.
+      - name: service_date
+        description: Date the product or service is delivered.
+      - name: sort_order
+        description: Display order of the line item on the opportunity.
+      - name: created_date
+        description: Timestamp this line item was created in the source system.

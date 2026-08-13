@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_salescloud__opportunityhistory
+    description: >
+      One row per opportunity_history_id. Staging model over the raw
+      OpportunityHistory bronze table: renames columns to snake_case and
+      casts types. Tracks stage-progression snapshots for an opportunity.
+    columns:
+      - name: opportunity_history_id
+        description: Salesforce OpportunityHistory ID.
+        tests:
+          - not_null
+          - unique
+      - name: opportunity_id
+        description: FK to stg_salescloud__opportunity.opportunity_id.
+        tests:
+          - not_null
+      - name: stage_name
+        description: Sales stage recorded at this history point.
+      - name: amount
+        description: Opportunity amount recorded at this history point.
+      - name: probability
+        description: Probability recorded at this history point, as a percentage.
+      - name: close_date
+        description: Expected close date recorded at this history point.
+      - name: created_date
+        description: Timestamp this history record was created.

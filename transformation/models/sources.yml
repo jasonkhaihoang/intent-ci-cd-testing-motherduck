@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: salescloud
+    database: prd
+    schema: raw
+    tables:
+      - name: account
+      - name: opportunity
+      - name: opportunityhistory
+      - name: opportunitylineitem
+      - name: user

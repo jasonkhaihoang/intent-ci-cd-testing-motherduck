@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: stg_salescloud__opportunity
+    description: >
+      One row per opportunity_id. Staging model over the raw Opportunity
+      bronze table: renames columns to snake_case, casts types, and
+      filters soft-deleted rows.
+    columns:
+      - name: opportunity_id
+        description: Salesforce Opportunity ID.
+        tests:
+          - not_null
+          - unique
+      - name: account_id
+        description: FK to stg_salescloud__account.account_id.
+      - name: owner_id
+        description: FK to stg_salescloud__user.user_id, the opportunity owner.
+      - name: opportunity_name
+        description: Opportunity name.
+      - name: stage_name
+        description: Current sales stage of the opportunity.
+      - name: opportunity_type
+        description: Opportunity type (e.g. New Business, Renewal).
+      - name: lead_source
+        description: Source that generated the lead for this opportunity.
+      - name: amount
+        description: Opportunity amount.
+      - name: probability
+        description: Probability of closing, as a percentage.
+      - name: expected_revenue
+        description: Amount weighted by probability.
+      - name: created_date
+        description: Timestamp the opportunity was created in the source system.
+      - name: close_date
+        description: Expected or actual close date.
+      - name: last_stage_change_date
+        description: Timestamp the opportunity last changed stage.
+      - name: is_closed
+        description: Whether the opportunity is closed.
+      - name: is_won
+        description: Whether the opportunity was won.
+      - name: is_deleted
+        description: Soft-delete flag from the source system.
+      - name: last_modified_date
+        description: Timestamp the opportunity was last modified in the source system.
+      - name: system_modified_timestamp
+        description: System-generated last-modified timestamp.
