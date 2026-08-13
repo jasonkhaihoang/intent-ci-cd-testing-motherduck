@@ -262,6 +262,7 @@ jobs:
         run: |
           python3 ${{ env.SCRIPTS }}/dbt_error_report.py reports/dbt_compile.json \
             compile \
+            --project-dir "$PROJ" \
             --profiles-dir .github/profiles \
             --profile dbt_motherduck_compile \
             --target compile \
