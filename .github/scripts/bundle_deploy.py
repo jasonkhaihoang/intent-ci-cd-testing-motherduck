@@ -19,7 +19,7 @@ import sys
 
 _BUNDLE_DIRS = {
     "fabric": "domain-ci-fabric-bundle",
-    "motherduck": "domain-ci-duckdb-bundle",
+    "motherduck": "domain-ci-motherduck-bundle",
 }
 
 

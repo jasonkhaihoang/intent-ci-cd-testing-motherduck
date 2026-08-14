@@ -3,7 +3,7 @@
 Gathers release-existence via `gh release view`, calls the pure functional core
 `build_release_publish_commands` (dbt_docs_publish.py) exactly once, then dispatches every
 returned `gh` command. Invoked identically by both domain-ci-fabric-bundle's and
-domain-ci-duckdb-bundle's publish-prod-manifest workflows -- CLAUDE.md's functional-
+domain-ci-motherduck-bundle's publish-prod-manifest workflows -- CLAUDE.md's functional-
 architecture rule: gather I/O upfront, call the core once, dispatch effects; never re-evaluate
 the domain decision afterward.
 """

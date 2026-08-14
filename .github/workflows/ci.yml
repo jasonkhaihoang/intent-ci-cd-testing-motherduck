@@ -1,6 +1,6 @@
 # MotherDuck CI — Gates 0, 1, design-drift, 2, 4 (static-check + state-modified+ + design-drift + ci/run + ci/data-tests).
 # Gate 3 (ci/unit-tests) is wired in VD-2162.
-# See docs/design/DuckDB/duckdb-motherduck-ci-workflow-design.md
+# See docs/design/MotherDuck/motherduck-ci-workflow-design.md
 name: CI (MotherDuck)
 
 on:
@@ -16,7 +16,7 @@ permissions:
   contents: read
   pull-requests: write
   statuses: write
-  actions: read    # gh run list / download for prod-manifest-duckdb artifact
+  actions: read    # gh run list / download for prod-manifest-motherduck artifact
 
 env:
   PYTHON_VERSION: "3.11"
@@ -262,6 +262,7 @@ jobs:
         run: |
           python3 ${{ env.SCRIPTS }}/dbt_error_report.py reports/dbt_compile.json \
             compile \
+            --project-dir "$PROJ" \
             --profiles-dir .github/profiles \
             --profile dbt_motherduck_compile \
             --target compile \
@@ -410,7 +411,7 @@ jobs:
           EOF
 
   # ─── FETCH PROD STATE ─────────────────────────────────────────────────────────
-  # Gate 1: download prod-manifest-duckdb → dbt ls --state → emit deployment manifest.
+  # Gate 1: download prod-manifest-motherduck → dbt ls --state → emit deployment manifest.
   # dbt_motherduck_compile is offline; no MotherDuck live connection required here.
   fetch-prod-state:
     name: "ci/state-modified+: fetch prod state"

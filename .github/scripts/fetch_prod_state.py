@@ -121,6 +121,23 @@ def fetch_artifact_mode(cfg: dict) -> ArtifactResult:
         capture_output=True, text=True,
     )
     if result.returncode != 0:
+        # `gh`'s channel placement for CLI error text is not a documented
+        # contract — check both streams so the greenfield-404 signal below
+        # is not missed if a future `gh` version emits it on stdout.
+        combined_output = f"{result.stdout} {result.stderr}".lower()
+        if "not found on the default branch" in combined_output:
+            # The CD-publish workflow file has never existed on `main` — the
+            # artifact-mode counterpart of onelake's confirmed-greenfield 404
+            # (VD-3216). Structurally equivalent to "zero successful CD runs
+            # ever": a domain's first-ever PR must reach greenfield, not a
+            # platform error (VD-4402). This match is on `gh`'s unversioned
+            # CLI error text, not a structured status code (see Global
+            # Constraints — accepted risk: CLI wording drift).
+            runner_io.notice(
+                "CD-publish workflow not found on the default branch — true "
+                "greenfield (full build)."
+            )
+            return ArtifactResult("greenfield")
         reason = f"gh run list failed: {result.stderr.strip() or 'exit ' + str(result.returncode)}"
         runner_io.warning(reason)
         return ArtifactResult("error", "transient", reason)
