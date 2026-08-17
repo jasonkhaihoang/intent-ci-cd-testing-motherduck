@@ -6,5 +6,5 @@ models:
     columns:
       - name: id
         description: "Example integer identifier."
-      - name: name
+      - name: label
         description: "Example string label."

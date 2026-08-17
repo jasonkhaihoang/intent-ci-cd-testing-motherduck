@@ -10,7 +10,7 @@ Add one staging view, `stg_example`, materialized as a `view`, that selects hard
 
 | Model | Materialization | Grain | Columns |
 | --- | --- | --- | --- |
-| stg_example | view | one row per example record | id, name |
+| stg_example | view | one row per example record | id, label |
 
 ## Source Mapping / Discovery
 
