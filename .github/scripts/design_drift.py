@@ -55,9 +55,14 @@ def build_llm_prompt(design_text: str, manifest: dict, modified_names: list[str]
     }
     return (
         "You are a CI gate. Compare the design.md below against the dbt manifest fragment "
-        "for the state:modified models. Report every drift class you can identify by "
-        "calling the report_design_drift tool exactly once. If there is no drift, call it "
-        "with has_drift=false and an empty findings array.\n\n"
+        "for the state:modified models. Report every drift class you can identify.\n\n"
+        "Respond with a single JSON object and nothing else (no markdown fences, no prose). "
+        "The object must have exactly this shape:\n"
+        '{"has_drift": <true|false>, "findings": [{"kind": "<kind>", "model": "<model>", '
+        '"detail": "<detail>"}, ...]}\n'
+        "Allowed finding kinds: missing_model, extra_model, grain_mismatch, "
+        "materialization_mismatch, unique_key_mismatch, unexpected_column, missing_column. "
+        "If there is no drift, respond with has_drift=false and an empty findings array.\n\n"
         f"=== design.md ===\n{design_text}\n\n"
         f"=== state:modified ===\n{json.dumps(sorted(modified_set))}\n\n"
         f"=== manifest (modified nodes only) ===\n{json.dumps(compact, indent=2)}\n"

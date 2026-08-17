@@ -4,7 +4,7 @@ gather → call → dispatch:
   1. Read design.md, manifest.json, modified.json from disk.
   2. Read LLM_API_KEY, LLM_API_URL, LLM_MODEL from env.
   3. Build prompt; POST to OpenAI-compatible chat completions API; receive
-     structured JSON via tool-use.
+     structured JSON in the assistant content.
   4. Call run_design_drift (pure).
   5. Post ci/design-drift status; sys.exit(1) on drift or error.
 
@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -42,41 +43,6 @@ DEFAULT_LLM_API_URL = "https://api.openai.com"
 DEFAULT_LLM_MODEL = "gpt-4o"
 MAX_OUTPUT_TOKENS = 4096
 
-_DRIFT_TOOL = {
-    "type": "function",
-    "function": {
-        "name": "report_design_drift",
-        "description": "Return drift findings comparing design.md against the modified dbt models.",
-        "parameters": {
-            "type": "object",
-            "required": ["has_drift", "findings"],
-            "properties": {
-                "has_drift": {"type": "boolean"},
-                "findings": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["kind", "model", "detail"],
-                        "properties": {
-                            "kind": {
-                                "type": "string",
-                                "enum": [
-                                    "missing_model", "extra_model",
-                                    "grain_mismatch", "materialization_mismatch",
-                                    "unique_key_mismatch",
-                                    "unexpected_column", "missing_column",
-                                ],
-                            },
-                            "model": {"type": "string"},
-                            "detail": {"type": "string"},
-                        },
-                    },
-                },
-            },
-        },
-    },
-}
-
 
 def _read_text(path: str) -> str:
     with open(path) as f:
@@ -85,6 +51,28 @@ def _read_text(path: str) -> str:
 
 def _design_md_path(intent_id: str) -> str:
     return f"{intent_id}/design.md"
+
+
+def _parse_json_object(text: str) -> dict:
+    """Extract and parse a JSON object from an LLM content string.
+
+    Tolerates markdown fences, surrounding prose, and a leading/trailing
+    reasoning block by locating the first '{' … last '}' span.
+    """
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+        text = text.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("no JSON object found in LLM response")
+    return json.loads(text[start:end + 1])
 
 
 def call_llm(api_key: str, prompt: str, api_url: str, model: str) -> dict:
@@ -102,8 +90,6 @@ def call_llm(api_key: str, prompt: str, api_url: str, model: str) -> dict:
         "model": model,
         "max_tokens": MAX_OUTPUT_TOKENS,
         "temperature": 0,
-        "tools": [_DRIFT_TOOL],
-        "tool_choice": {"type": "function", "function": {"name": "report_design_drift"}},
         "messages": [{"role": "user", "content": prompt}],
     }).encode()
     req = urllib.request.Request(url, data=body, method="POST")
@@ -116,12 +102,11 @@ def call_llm(api_key: str, prompt: str, api_url: str, model: str) -> dict:
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"LLM API HTTP {e.code}: {e.read().decode(errors='replace')}") from e
     try:
-        tool_call = payload["choices"][0]["message"]["tool_calls"][0]
-        arguments = tool_call["function"]["arguments"]
-        return arguments if isinstance(arguments, dict) else json.loads(arguments)
-    except (KeyError, IndexError, json.JSONDecodeError, TypeError) as e:
+        content = payload["choices"][0]["message"]["content"]
+        return _parse_json_object(content)
+    except (KeyError, IndexError, json.JSONDecodeError, TypeError, ValueError) as e:
         raise RuntimeError(
-            f"LLM response did not include a report_design_drift tool call: {payload}"
+            f"LLM response did not include a report_design_drift JSON object: {payload}"
         ) from e
 
 
@@ -174,6 +159,7 @@ def main(argv: list[str]) -> int:
         prompt = build_llm_prompt(design_text, manifest, modified_names)
         llm_response = call_llm(api_key, prompt, api_url, model)
     except Exception as e:  # gather/call failure → emit failure status, exit 1
+        print(f"design-drift error: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
         _post(args.head_sha, "failure", f"design-drift error: {type(e).__name__}: {e}")
         _post_pr_comment(args.pr_number, result=None)
         return 1
