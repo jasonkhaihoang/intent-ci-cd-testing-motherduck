@@ -174,6 +174,7 @@ def main(argv: list[str]) -> int:
         prompt = build_llm_prompt(design_text, manifest, modified_names)
         llm_response = call_llm(api_key, prompt, api_url, model)
     except Exception as e:  # gather/call failure → emit failure status, exit 1
+        print(f"design-drift error: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
         _post(args.head_sha, "failure", f"design-drift error: {type(e).__name__}: {e}")
         _post_pr_comment(args.pr_number, result=None)
         return 1
