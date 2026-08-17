@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: stg_example
+    description: "One row per example record. Smoke-test staging view selecting hardcoded literal columns."
+    columns:
+      - name: id
+        description: "Example integer identifier."
+      - name: name
+        description: "Example string label."
