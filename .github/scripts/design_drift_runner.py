@@ -88,16 +88,10 @@ def _design_md_path(intent_id: str) -> str:
 
 
 def call_llm(api_key: str, prompt: str, api_url: str, model: str) -> dict:
-    # Support a bare base URL (https://api.openai.com), a /v1-suffixed base
-    # (https://api.openai.com/v1), and a full endpoint URL
-    # (https://api.openai.com/v1/chat/completions) — append only what is missing.
+    # Support both a base URL (https://api.openai.com) and a full endpoint URL
+    # (https://api.openai.com/v1/chat/completions) — append only when needed.
     base = api_url.rstrip("/")
-    if base.endswith("/chat/completions"):
-        url = base
-    elif base.endswith("/v1"):
-        url = f"{base}/chat/completions"
-    else:
-        url = f"{base}/v1/chat/completions"
+    url = base if base.endswith("/v1/chat/completions") else f"{base}/v1/chat/completions"
     body = json.dumps({
         "model": model,
         "max_tokens": MAX_OUTPUT_TOKENS,
@@ -174,7 +168,6 @@ def main(argv: list[str]) -> int:
         prompt = build_llm_prompt(design_text, manifest, modified_names)
         llm_response = call_llm(api_key, prompt, api_url, model)
     except Exception as e:  # gather/call failure → emit failure status, exit 1
-        print(f"design-drift error: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
         _post(args.head_sha, "failure", f"design-drift error: {type(e).__name__}: {e}")
         _post_pr_comment(args.pr_number, result=None)
         return 1
