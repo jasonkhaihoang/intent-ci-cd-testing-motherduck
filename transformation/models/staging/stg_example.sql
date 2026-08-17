@@ -6,16 +6,16 @@
 
 SELECT
     1 AS id,
-    'alpha' AS label
+    'alpha' AS example_name
 
 UNION ALL
 
 SELECT
     2 AS id,
-    'beta' AS label
+    'beta' AS example_name
 
 UNION ALL
 
 SELECT
     3 AS id,
-    'gamma' AS label
+    'gamma' AS example_name
